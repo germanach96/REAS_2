@@ -1,60 +1,70 @@
-# Context document: "SP vs BASE" Dashboard (file REAS_2_301026_dashboard.xlsm)
+# Context document: "SP vs FCST" Dashboard (file REAS_2_261101_ver2.xlsm)
 
 > **Instructions for any AI assistant reading this document**
 > - This is a self-contained, plain-text description of an Excel demand-planning dashboard (Coty, Barcelona Supply Chain Hub). It does not depend on any specific AI tool, plugin or file access.
 > - Treat it as the source of truth to answer questions about what the dashboard shows, where the data comes from, how each figure is calculated, how to update it, its limitations and how to interpret the results.
-> - If a question is not covered here, say so explicitly instead of guessing. Do not invent figures: the only numbers you can quote are the ones in this document (section 11) or numbers the user gives you.
+> - If a question is not covered here, say so explicitly instead of guessing. Do not invent figures: the only numbers you can quote are the ones in this document (section 12) or numbers the user gives you.
 > - The dashboard was built with the help of an AI assistant and validated by recalculating the figures independently.
+> - Version history: the 30-Oct-2026 version compared SP vs BASE (+ INNO) with a "Remove INNO" switch. **ver2 (data of 01-Nov-2026)** adds the OSP layer, a layer selector (BASE / INNO / OSP), a Planner filter, charts by House, a 7-slide export and automatic detection of the last closed month.
 
 ---
 
 ## 1. Purpose
 
-The dashboard compares the **Sales Plan (SP)** with the **BASE forecast** (system forecast volume) plus **innovation volume (INNO)**, by house, IPPL Line and product line (PL), month by month, for fiscal year FY27 (Jul-26 → Jun-27).
+The dashboard compares the **Sales Plan (SP)** with **our forecast (FCST)**, split into three **layers**:
+
+| Layer | Our forecast (FCST side) | Sales plan (SP side) |
+|---|---|---|
+| **BASE** | BASE tab (system forecast volume) | BASE part of the SP tab = MAX(0, SP − INNO) |
+| **INNO** | INNO tab (innovation volume) | INNO part of the SP tab = MIN(SP, INNO) |
+| **OSP** (one-shot promotions) | OSP tab | OSP-SP tab (OSP volume planned by Sales) |
+
+SP tab = BASE + INNO together (they have to be split using the INNO forecast, as before). OSP is planned separately by Sales in the OSP-SP tab, so it is **added**, not subtracted.
+
+Comparison by house, IPPL Line and product line (PL), month by month, for fiscal year FY27 (Jul-26 → Jun-27).
 
 It also shows:
-- **Sell-in trends** (BASE + INNO volume, last 6 and 12 closed months vs last year).
+- **Sell-in trends** (volume of the selected layers, last 6 and 12 closed months vs last year).
 - **Sell-out trends** (EPOS in $, last 26 and 52 weeks vs last year).
 - **LY** (last-year volume) and **trend projections** (LY × (1 + trend)).
-- **Forecast accuracy at lag 3**: **SPP3** (bias) and **WAPE3** (weighted absolute percentage error).
-- An **EXPORT** button that produces a 5-slide PDF for reporting.
-
-Typical use: check whether the plan (SP) is aligned with what the system forecast and the innovation plan say, and support the discussion with trends and accuracy.
+- **Forecast accuracy at lag 3**: **SPP3** (bias) and **WAPE3** (weighted absolute percentage error), closed months.
+- An **EXPORT** button that produces a 7-slide PDF for reporting.
 
 ---
 
 ## 2. File structure
 
-The file is a **macro-enabled Excel workbook (.xlsm)**. By default **only the Dashboard tab is visible**; all other tabs are hidden (right-click a tab → Unhide…).
+The file is a **macro-enabled Excel workbook (.xlsm)**. **Only the Dashboard tab is visible**: the file is saved that way and, when macros are enabled, every time the workbook is opened all other tabs are hidden again (Workbook_Open). To see a tab: right-click a tab → Unhide….
 
 | Tab | Type | Content |
 |---|---|---|
-| **SP** | Manual input | Sales Plan: House, IPPL Line and 12 months (row 1 = months Jul-26…Jun-27). Data is pasted from row 2 (rows 2–201 are read). |
-| **BASE** | Manual input | System extract (formerly called "REAS"). One row per product line; column A = IPPL LINE (XLOOKUP formula on IPPL MAP 1), column B = Product_line; column blocks per FY / half / quarter / month with measures (Act + Fcst, Year Ago, % vs YA, Snapshot, % L12M vs YA, % L6M vs YA, SPP3 %, WAPE3, Cuts…). Rows 5–504 are read. |
+| **SP** | Manual input | Sales Plan (BASE + INNO): House, IPPL Line and 12 months (row 1 = months Jul-26…Jun-27). Rows 2–201 are read. |
+| **OSP-SP** | Manual input | Sales Plan of the one-shot promotions, same structure as SP. Rows 2–201 are read. |
+| **BASE** | Manual input | System extract. One row per product line; column A = IPPL LINE (XLOOKUP formula on IPPL MAP 1), column B = Product_line; column blocks per FY / half / quarter / month with measures (Act + Fcst, Year Ago, % vs YA, Snapshot, % L12M vs YA, % L6M vs YA, SPP3 %, WAPE3, Cuts…). Rows 5–504 are read. |
 | **INNO** | Manual input | Same structure as BASE, innovations only. Rows 5–504 are read. |
-| **EPOS** | Manual input | Sell-out (Power BI export): Category, House, Brand, Line; $ and YoY Δ / YoY % for L26W and L52W. Rows 3–602 are read. (To be reviewed later.) |
+| **OSP** | Manual input | Same structure as BASE, one-shot promotions only. Rows 5–504 are read. |
+| **EPOS** | Manual input | Sell-out (Power BI export): Category, House, Brand, Line; $ and YoY Δ / YoY % for L26W and L52W. Rows 3–602 are read. |
+| **PLANNER** | Master data | Team ownership: House (column A) → Planner (column B). "?" or empty = "(unassigned)". Houses missing from the tab are also "(unassigned)". |
 | **IPPL MAP 1 / IPPL MAP 2** | Master data | Mapping GMM Line / Product line → IPPL Line and House. |
-| **TABLE** | Automatic (formulas only) | Consolidates SP, BASE and INNO by IPPL Line and month. Never typed into. |
+| **TABLE** | Automatic (formulas only) | Consolidates SP, BASE, INNO, OSP and OSP-SP by IPPL Line and month. Never typed into. |
 | **Dashboard** | Visible | Filters, KPIs, tables, charts and EXPORT button. |
 | **DASH CALC** | Automatic (hidden) | Calculation engine of the dashboard. Do not edit. |
-| **EXPORT** | Automatic (hidden) | Layout of the 5 slides exported to PDF. |
+| **EXPORT** | Automatic (hidden) | Layout of the 7 slides exported to PDF. |
 
-**Units:** BASE and INNO come in thousands in the system; TABLE and the dashboard multiply them × 1000 so they are comparable with SP (volume in units). EPOS is in $ and is only used for % trends.
+**Units:** BASE, INNO and OSP come in thousands in the system; TABLE and the dashboard multiply them × 1000 so they are comparable with SP / OSP-SP (volume in units). EPOS is in $ and is only used for % trends.
 
 ---
 
 ## 3. How TABLE works (automatic consolidation)
 
-- **IPPL Line list:** built automatically as the de-duplicated union of the IPPL Lines in SP (first, in SP order) and then those that exist only in BASE or INNO. Capacity: 150 lines.
-- **House of each line:** taken from SP; if the line is not in SP, looked up in IPPL MAP 1; if not found there either, it is labelled **"(no house)"** (only visible with House = All).
-- **Blocks:** rows 2–151 = SP, 152–301 = BASE, 302–451 = INNO (column A = TYPE).
-- **Values:**
-  - SP = sum of SP for that IPPL Line and month. If the month is empty in SP it stays empty (not 0); e.g. Jul–Sep 26 have no SP.
-  - BASE = sum of the month's "Act + Fcst" column in the BASE tab for that IPPL Line × 1000.
-  - INNO = same from the INNO tab × 1000.
-- **Adding data:** new houses, IPPL Lines or product lines added in SP, BASE or INNO appear automatically in TABLE, in the dropdowns and in every calculation (tested with a test house, a test IPPL Line and test PLs).
+- **IPPL Line list:** de-duplicated union of the IPPL Lines in SP (first, in SP order), then OSP-SP, BASE, INNO and OSP. Capacity: 150 lines.
+- **House of each line:** taken from SP; if not there, from OSP-SP; if not there, from IPPL MAP 1; otherwise **"(no house)"** (only visible with House = All and Planner = All).
+- **Planner of each house:** from the PLANNER tab (column X of TABLE).
+- **Blocks (column A = TYPE):** rows 2–151 = SP, 152–301 = BASE, 302–451 = INNO, 452–601 = OSP, 602–751 = OSP-SP.
+- **Values:** SP / OSP-SP = sum of the tab for that IPPL Line and month (empty month stays empty, not 0). BASE / INNO / OSP = sum of the month's "Act + Fcst" column for that IPPL Line × 1000.
+- **Adding data:** new houses, IPPL Lines, PLs or planners added in the input tabs appear automatically in TABLE, the dropdowns and every calculation.
 
-Monthly "Act + Fcst" columns used in BASE/INNO: Jul-26 CP, Aug-26 DC, Sep-26 DP, Oct-26 EC, Nov-26 EP, Dec-26 FC, Jan-27 FP, Feb-27 GC, Mar-27 GP, Apr-27 HC, May-27 HP, Jun-27 IC. The Year Ago (YA) column of each month is the next column (CQ, DD, DQ, ED, EQ, FD, FQ, GD, GQ, HD, HQ, ID).
+Monthly "Act + Fcst" columns used in BASE / INNO / OSP: Jul-26 CP, Aug-26 DC, Sep-26 DP, Oct-26 EC, Nov-26 EP, Dec-26 FC, Jan-27 FP, Feb-27 GC, Mar-27 GP, Apr-27 HC, May-27 HP, Jun-27 IC. The Year Ago (YA) column of each month is the next column; SPP3 % is 9 columns to the right and WAPE3 10 columns to the right (e.g. Jul-26: CQ, CY, CZ).
 
 ---
 
@@ -62,197 +72,220 @@ Monthly "Act + Fcst" columns used in BASE/INNO: Jul-26 CP, Aug-26 DC, Sep-26 DP,
 
 | Filter | Cell | Options | Effect |
 |---|---|---|---|
-| House | C5 | All + existing houses | Filters everything. |
-| IPPL Line | C6 | All + lines of the selected house | If the line does not belong to the house, a warning appears and all lines of the house are shown. |
-| Remove INNO | C7 | No / Yes | Changes the comparison basis (see §5). |
-| Month from / Month to | C8 / C9 | Jul-26…Jun-27 | Range for totals, KPIs and "period total" details. Default Oct-26 → Jun-27 (SP has no volume in Jul–Sep 26). |
-| Metric for per-line charts | C10 | BASE / SP / Gap | Metric of the monthly history by IPPL Line chart. |
-| Product line | C11 | All + PLs within the House/IPPL filter | Product-line view (see §8). If the PL does not fit the House/IPPL filter, a warning appears and everything is shown. |
+| Planner | C5 | All + planners of the PLANNER tab | Keeps only the houses of that planner (and filters the House and IPPL Line dropdowns). |
+| House | C6 | All + houses (of the selected planner) | Filters everything. If the house does not belong to the planner, a warning appears and all houses of the planner are shown. |
+| IPPL Line | C7 | All + lines of the selected house / planner | If the line is not in the filter, a warning appears and all lines are shown. |
+| Month from / Month to | C8 / C9 | Jul-26…Jun-27 | Range for totals, KPIs and "period total" details. Default **Nov-26 → Jun-27** (SP / OSP-SP have no volume before Nov-26). |
+| Metric for per-line charts | C10 | FCST / SP / Gap | Metric of the monthly history charts by House and by IPPL Line. |
+| Include BASE | C11 | Yes / No | Includes the BASE layer on both sides. |
+| Include INNO | C12 | Yes / No | Includes the INNO layer on both sides. |
+| Include OSP | C13 | Yes / No | Includes the OSP layer on both sides. |
+| Product line | C14 | All + PLs within the Planner/House/IPPL filter | Product-line view (see §8). If the PL does not fit the filter, a warning appears and everything is shown. |
 
-Trends and forecast accuracy **do not depend** on Month from / Month to (they always use the last closed months).
+Warnings and notices are shown in F15. Trends and forecast accuracy **do not depend** on Month from / Month to (they always use the closed months).
 
 ---
 
-## 5. Comparison logic and "Remove INNO"
+## 5. Comparison logic and layer selection
 
-| Remove INNO | SP side | BASE side |
-|---|---|---|
-| **No** (default) | SP | **BASE + INNO** |
-| **Yes** | **SP − INNO** | **BASE** |
+For each IPPL Line and month (the lowest level at which SP exists):
 
-Reason: SP already includes innovations; the system forecast keeps them separately in INNO. With "Yes" both sides are compared without innovation.
+- **SP BASE part** = MAX(0, SP − MAX(0, INNO))
+- **SP INNO part** = MAX(0, MIN(SP, MAX(0, INNO)))
+- **SP OSP part** = OSP-SP
+- **SP compared** = Include BASE × SP BASE part + Include INNO × SP INNO part + Include OSP × OSP-SP
+- **FCST compared** = Include BASE × BASE + Include INNO × INNO + Include OSP × OSP
 
-**No-negatives rule (when INNO is removed):** SP and the INNO plan are planned by different people, so they may not match. Therefore, with Remove INNO = Yes:
-- SP − INNO is calculated **per IPPL Line and per month** (the lowest level at which SP exists) and **floored at 0**: MAX(0, SP − INNO). Only then is it summed to house / total.
-- BASE never goes below BASE (removing INNO leaves exactly BASE).
-- Example: SP 100, INNO 120, BASE 20 → SP − INNO = 0 and BASE = 20.
-- Consequence: the volume gap can differ between the two modes when, in some line/month, INNO exceeds SP.
+Only then is it summed to house / planner / total. Consequences:
+- All layers included (default): SP + OSP-SP vs BASE + INNO + OSP.
+- BASE + OSP (equivalent of the old "Remove INNO = Yes" plus OSP): (SP − INNO, floored at 0) + OSP-SP vs BASE + OSP.
+- BASE + INNO only: exactly the old "Remove INNO = No" comparison (SP vs BASE + INNO).
+- SP − INNO is never negative (SP and the INNO plan are planned by different people). A negative INNO forecast is treated as 0 when splitting the SP.
+- No layer selected: everything is 0 and a warning appears.
 
-At product-line level there is no SP, so the subtraction does not apply (only BASE or BASE + INNO).
+Labels show the layers in use, e.g. "SP (BASE + INNO + OSP)" and "FCST (BASE + INNO + OSP)". At product-line level there is no SP (only FCST).
 
 ---
 
 ## 6. What the Dashboard shows
 
-1. **Period KPIs:** SP, BASE (+ INNO), Gap (BASE vs SP) and Gap % = BASE / SP − 1, plus INNO in the range.
-2. **Trend tiles** (traffic light): Sell-in 6M, Sell-in 12M, Sell-out 6M, Sell-out 12M. Green ≥ +5%, amber between −5% and +5%, red ≤ −5%.
-3. **Monthly table:** SP, BASE (+ INNO), Gap, Gap % (colour scale: red = BASE below SP, white ≈ 0, green = BASE above SP; full colour at ±30%) and INNO; "Range total" column.
-4. **SP vs BASE by month chart** (lines). With switches (panel "Extra lines on the chart"):
-   - **LY (last year):** sum of the Year Ago columns of BASE + INNO (BASE only if Remove INNO = Yes).
-   - **Projections:** LY × (1 + trend) for Sell-in 6M, Sell-in 12M, Sell-out 6M, Sell-out 12M and a **manual trend** (cell R28). Several can be shown at once. The panel shows the applied trend and the total in the range.
-5. **BASE vs INNO breakdown:** stacked bars BASE + INNO by month with the SP line. With Remove INNO = Yes, INNO disappears and the line becomes SP − INNO.
-6. **Forecast accuracy (lag 3):** SPP3 bars and WAPE3 line for closed months (Jul, Aug, Sep 26), with dotted thresholds WAPE 40% and SPP ±5%.
-7. **Detail by IPPL Line** (period total, SP vs BASE) and **by product line** (top 25 by volume).
-8. **Monthly history by IPPL Line** (one line per IPPL Line, top 30 by SP; metric per filter C10) and **by product line** (top 25).
-9. **Sell-in vs sell-out trends by IPPL Line** (chart) and tables by IPPL Line and by product line (all PLs in the filter, sorted, with trends).
+1. **Period KPIs:** SP, FCST, Gap (FCST − SP) and Gap % = FCST / SP − 1; last closed month; period.
+2. **By layer (range total)** (F11:M14): FCST, SP part and Gap % for BASE, INNO and OSP (excluded layers are labelled "(excluded)").
+3. **Trend tiles** (traffic light): Sell-in 6M, Sell-in 12M, Sell-out 6M, Sell-out 12M. Green ≥ +5%, amber between −5% and +5%, red ≤ −5%.
+4. **Monthly table:** SP, FCST, Gap, Gap % (colour scale: red = FCST below SP, white ≈ 0, green = FCST above SP; full colour at ±30%), BASE, INNO and OSP; "Range total" column.
+5. **SP vs FCST by month chart** (lines) with the panel "Extra lines on the chart": **LY** (sum of the Year Ago columns of the selected layers) and **projections** LY × (1 + trend) for Sell-in 6M / 12M, Sell-out 6M / 12M and a **manual trend**.
+6. **FCST by layer by month:** stacked bars BASE + INNO + OSP with the SP line (excluded layers are hidden).
+7. **Forecast accuracy (lag 3):** SPP3 bars and WAPE3 line for the 12 FY months (values only for closed months), with dotted thresholds WAPE 40% and SPP ±5%.
+8. **Detail by House** (period total, SP vs FCST, horizontal bars, sorted by the larger of SP and FCST) and **Detail by IPPL Line** (top 30 by SP), side by side.
+9. **Detail by product line** (FCST, top 25 by volume).
+10. **Monthly history by House** (one line per house; metric per filter C10), **by IPPL Line** (top 30 by SP) and **by product line** (FCST, top 25).
+11. **Sell-in vs sell-out trends by IPPL Line** (chart) and tables by IPPL Line and by product line (PL table: BASE, INNO, OSP, FCST, trends, IPPL Line).
 
 ---
 
 ## 7. Key definitions and calculations
 
-### 7.1 Sell-in trends (BASE + INNO, volume)
-- Windows: **L6M = Apr-26 → Sep-26**, **L12M = Oct-25 → Sep-26** (last closed month: Sep-26). Apr–Jun 26 and Oct-25–Jun-26 come from the Year Ago columns of the equivalent FY27 months; Jul–Sep 26 from "Act + Fcst".
-- The last-year volume of each row is derived from the % provided by the system: **YA = Act / (1 + "% L6M vs YA")** (or L12M). Each row therefore reproduces the system % exactly and the aggregate is volume-weighted: **trend = ΣAct / ΣYA − 1**.
+### 7.0 Last closed month (automatic)
+A month is closed when any BASE / INNO / OSP row has an SPP3 value for it. With the data of 01-Nov-2026 the closed months are **Jul–Oct 26** (last closed month **Oct-26**). Trend windows and accuracy move automatically when a new month is closed; nothing has to be edited.
+
+### 7.1 Sell-in trends (selected layers, volume)
+- Windows: **L6M** = last 6 closed months, **L12M** = last 12 closed months (with Oct-26 closed: L6M = May-26 → Oct-26, L12M = Nov-25 → Oct-26). FY26 months come from the Year Ago columns of the equivalent FY27 months; closed FY27 months from "Act + Fcst".
+- The last-year volume of each row is derived from the % provided by the system (FY columns J "% L12M vs YA" and K "% L6M vs YA", which match the last closed month): **YA = Act / (1 + %)**. The aggregate is volume-weighted: **trend = ΣAct / ΣYA − 1**.
 - Products with no history (launches) count with YA = 0; if the whole selection is new, the trend shows **n/a**.
-- With Remove INNO = Yes, BASE only.
+- Only rows of the included layers count.
 
 ### 7.2 Sell-out trends (EPOS, $)
 - 6M = **L26W**, 12M = **L52W**. **trend = Σ$ / Σ($ − YoY Δ) − 1.**
-- Each EPOS line is mapped to its IPPL Line via IPPL MAP 1 (all current lines map).
-- Validated: by house and in total it matches exactly the YoY % calculated by Power BI in the EPOS tab.
-- At product-line level it is matched by exact line name in EPOS; if there is no match, n/a.
-- Remove INNO does not affect sell-out (EPOS does not split INNO).
+- Each EPOS line is mapped to its IPPL Line via IPPL MAP 1. At product-line level it is matched by exact line name in EPOS; if there is no match, n/a.
+- The layer selection does not affect sell-out (EPOS does not split layers).
 
 ### 7.3 Forecast accuracy (lag 3)
 - **SPP3 = Actual / Forecast lag3 − 1** (negative = over-forecast; positive = under-forecast).
-  - The formula was inferred from the data: SPP3 ranges from −100% to +999% (only consistent with Act/Fcst − 1), and in 216 single-SKU rows WAPE matches exactly |Act − Fcst| / Act using that forecast.
 - **WAPE3 = Σ|Actual − Forecast lag3| / ΣActual.**
-- **Aggregation (percentages are never summed):** for each row and month the dashboard rebuilds **Forecast = Actual / (1 + SPP3)** and **|Error| = WAPE3 × Actual**, sums them and recalculates the % for the filter. Validated: filtering a single PL returns exactly its values from the tab (e.g. Gorgeous Gardenia Sep-26: SPP3 −12.9%, WAPE3 16.1%).
-- Closed months with results only (currently Jul, Aug, Sep 26). Rows with Actual = 0 or without KPI cannot be rebuilt and are excluded (small volume).
+- **Aggregation (percentages are never summed):** for each row and month the dashboard rebuilds **Forecast = Actual / (1 + SPP3)** and **|Error| = WAPE3 × Actual**, sums them over the selected layers and filters, and recalculates the %.
+- Rows with Actual = 0 or without KPI cannot be rebuilt and are excluded (small volume).
 - Reference thresholds: WAPE 40%, SPP ±5%.
 
 ### 7.4 LY and projections
-- Monthly LY = Σ Year Ago (BASE + INNO, or BASE only with Remove INNO) × 1000, filtered.
+- Monthly LY = Σ Year Ago of the selected layers × 1000, filtered.
 - Projection = LY × (1 + selected trend).
 
 ---
 
-## 8. Product-line view (filter C11)
+## 8. Product-line view (filter C14)
 - SP does not exist at PL level: it is hidden (KPIs "n/a", no SP line in charts) and a notice appears.
-- BASE (+ INNO), LY, projections, sell-in / sell-out trends and SPP3 / WAPE3 are calculated for that PL only.
-- Charts by IPPL Line keep showing the full IPPL Line as a reference.
+- FCST (selected layers), LY, projections, sell-in / sell-out trends and SPP3 / WAPE3 are calculated for that PL only.
+- Charts by House and by IPPL Line keep showing the full lines as a reference.
+- PL list = PLs of BASE, then PLs of INNO / OSP that are not in BASE.
 
 ---
 
 ## 9. EXPORT button (macro)
 
 - Located top right of the Dashboard. Macros must be enabled when opening the file (and, if the file comes from email/SharePoint, it may need to be unblocked in File Properties).
-- Produces a **5-slide PDF** (A4 landscape, one slide per page) **without asking**, named **REAS_2_EXPORT_YYMMDDHHMMSS.pdf** (always unique), and opens it when done.
+- Produces a **7-slide PDF** (A4 landscape, one slide per page) **without asking**, named **REAS_2_EXPORT_YYMMDDHHMMSS.pdf** (always unique), and opens it when done.
 - **Location:** same folder as the Excel file. If the file is on OneDrive/SharePoint, the macro finds the locally synced folder via the OneDrive registry; if that fails it tries the web path; as a last resort it saves to Downloads and shows the path.
-- **Slide content** (each slide has the title, the **active filters** and what is shown at the top, and a **COMMENTS** box at the bottom for notes):
-  1. KPIs + trend tiles + monthly table + SP vs BASE chart (with the LY/projection lines switched on).
-  2. BASE vs INNO breakdown + forecast accuracy (SPP3/WAPE3).
-  3. Detail by IPPL Line + detail by product line.
-  4. Monthly history by IPPL Line.
-  5. Monthly history by product line.
-- Not exported (they remain in the dashboard): the sell-in vs sell-out trends by IPPL Line chart and the two final tables (by IPPL Line and by product line).
-- Charts keep the same size and proportions as in the dashboard.
+- **Slide content** (each slide has the title, the **active filters** — Planner, House, IPPL Line, PL, layers, metric — and what is shown at the top, and a **COMMENTS** box at the bottom):
+  1. KPIs + by-layer table + trend tiles + monthly table + SP vs FCST chart (with the LY/projection lines switched on).
+  2. FCST by layer (stacked) + forecast accuracy (SPP3/WAPE3).
+  3. Detail by House + detail by IPPL Line (bars).
+  4. Detail by product line (bars).
+  5. Monthly history by House (lines).
+  6. Monthly history by IPPL Line.
+  7. Monthly history by product line.
+- Not exported (they remain in the dashboard): the sell-in vs sell-out trends by IPPL Line chart and the two final tables.
 
 ---
 
 ## 10. How to update the data
 1. Unhide the relevant tab (right-click the Dashboard tab → Unhide…).
-2. **SP:** paste House, IPPL Line and the 12 months from row 2 (row 1 = months).
-3. **BASE / INNO:** paste the new extract with the same column structure; make sure the XLOOKUP formula in column A (IPPL LINE) reaches every row.
+2. **SP / OSP-SP:** paste House, IPPL Line and the 12 months from row 2 (row 1 = months).
+3. **BASE / INNO / OSP:** paste the new extract with the same column structure; make sure the XLOOKUP formula in column A (IPPL LINE) reaches every row.
 4. **EPOS:** paste the Power BI export with the same structure.
-5. Hide the tabs again if desired. Everything else (TABLE, DASH CALC, Dashboard, EXPORT) recalculates automatically.
+5. **PLANNER:** keep one row per house with its planner.
+6. Save. The other tabs are hidden again the next time the file is opened (or hide them manually). Everything else (TABLE, DASH CALC, Dashboard, EXPORT) recalculates automatically, including the last closed month.
 
-Capacities: SP 200 rows, BASE 500, INNO 500, EPOS 600, 150 IPPL Lines, 30 houses. Charts by IPPL Line show the top 30 by SP.
-
----
-
-## 11. Reference figures (data of 30-Oct-2026, House = All, Oct-26 → Jun-27)
-
-| Indicator | Remove INNO = No | Remove INNO = Yes |
-|---|---|---|
-| SP / SP − INNO | 144,391,730 | 102,874,741 |
-| BASE + INNO / BASE | 151,865,659 | 104,886,170 |
-| Gap | 7,473,929 | 2,011,429 |
-| Gap % | +5.2% | +2.0% |
-| INNO in range | 46,979,489 | 46,979,489 |
-| Sell-in 6M / 12M | +20.4% / +15.5% | +4.5% / +19.5% |
-| Sell-out 6M / 12M (EPOS) | +7.7% / +3.5% | +7.7% / +3.5% |
-| SPP3 Jul / Aug / Sep 26 | +0.3% / −8.1% / −9.9% | 0.0% / −19.8% / −13.2% |
-| WAPE3 Jul / Aug / Sep 26 | 44.7% / 50.1% / 37.0% | 38.2% / 42.7% / 41.4% |
-| LY (Oct-26 → Jun-27) | 152,057,210 | 108,052,009 |
-
-Other examples (Remove INNO = No): Gucci: SP 74,285,617 vs BASE + INNO 75,893,746 (+2.2%). Kylie Makeup / All Kylie Eyes: SP 678,871 vs 839,828 (+23.7%).
-
-Compared with the 28-Oct version, BASE and INNO changed (forecast of future months; total BASE + INNO went from 154.16M to 151.87M). SP and EPOS did not change, and neither did trends/accuracy (Sep-26 is still the last closed month).
+Capacities: SP 200 rows, OSP-SP 200, BASE / INNO / OSP 500 each, EPOS 600, 150 IPPL Lines, 30 houses, 200 PLANNER rows, 1,000 product lines. Charts by IPPL Line show the top 30 by SP; by House all houses (30).
 
 ---
 
-## 12. Validation performed
-- SP, BASE and INNO totals match a direct consolidation of the input tabs in every scenario tested (All, by house, by IPPL Line, by PL, with and without INNO).
-- Sell-out by house = Power BI YoY % (exact).
-- Sell-in and SPP3/WAPE3 recalculated independently row by row: they match.
-- The restructuring into SP/BASE/INNO inputs + automatic TABLE reproduces exactly the previous figures, and was tested by adding a new house, IPPL Line and PLs.
-- The exported slides show the same values as the Dashboard.
+## 11. Technical notes (ver2)
+- The engine uses only classic Excel functions (SUMIFS, SUMPRODUCT, INDEX/MATCH, COUNTIFS); the only dynamic function is the existing XLOOKUP in column A of BASE / INNO / OSP.
+- The workbook is set to recalculate fully when opened.
+- Macros: ExportModule (ExportSlides, ShowOnlyDashboard) and ThisWorkbook (Workbook_Open → ShowOnlyDashboard). The VBA project is stored as source code only, so Excel compiles it on first open.
 
 ---
 
-## 13. Limitations and points of attention
-- SP exists only by IPPL Line (not by PL).
-- SP has no volume in Jul–Sep 26; that is why the default range starts in Oct-26.
+## 12. Reference figures (data of 01-Nov-2026, all filters = All, Nov-26 → Jun-27)
+
+| Indicator | All layers (default) |
+|---|---|
+| SP (BASE + INNO + OSP) | 531,020,999 |
+| FCST (BASE + INNO + OSP) | 565,041,364 |
+| Gap / Gap % | 34,020,365 / +6.4% |
+| BASE: FCST vs SP BASE part | 291,976,463 vs 305,926,681 (−4.6%) |
+| INNO: FCST vs SP INNO part | 149,150,360 vs 130,887,972 (+14.0%) |
+| OSP: FCST vs OSP-SP | 123,914,541 vs 94,206,347 (+31.5%) |
+| Sell-in 6M / 12M (closed to Oct-26) | +14.1% / +6.9% |
+| Sell-out 6M / 12M (EPOS) | +2.7% / −0.2% |
+| SPP3 Jul / Aug / Sep / Oct 26 | −0.7% / −19.2% / −9.9% / −12.1% |
+| WAPE3 Jul / Aug / Sep / Oct 26 | 45.0% / 58.9% / 41.5% / 42.7% |
+| LY (Nov-26 → Jun-27) | 556,365,725 |
+
+Other examples (all layers, Nov-26 → Jun-27):
+- Planner = Adria: SP 237,954,161 vs FCST 243,924,326 (+2.5%).
+- Planner = German, House = Gucci: SP 90,730,106 vs FCST 103,345,071 (+13.9%).
+- House = Gucci, BASE only: SP BASE part 49,650,568 vs BASE 48,410,379 (−2.5%).
+- Top houses (SP vs FCST): BURBERRY 148,894,679 vs 149,043,847; Gucci 90,730,106 vs 103,345,071; CP-Marc Jacobs 78,307,751 vs 82,044,992.
+
+---
+
+## 13. Validation performed (ver2)
+- An independent recalculation (Python, straight from the input tabs, without the workbook formulas) was compared with the workbook recalculated in LibreOffice in 11 scenarios (default; planners Adria / German / Magalie / (unassigned); houses Gucci / BURBERRY; IPPL Line; product line; house not belonging to the planner; no layer; single layers and layer combinations; Oct–Dec range): SP, FCST, each layer, SP parts, sell-in trends, SPP3 / WAPE3 for the 12 months, LY by month and SP / FCST by house match exactly in every scenario, with no formula errors.
+- The exported slides were rendered and checked (7 pages, charts within their slide).
+
+---
+
+## 14. Limitations and points of attention
+- SP and OSP-SP exist only by IPPL Line (not by PL).
+- SP / OSP-SP have no volume before Nov-26; that is why the default range starts in Nov-26. Months in the range without SP count as SP = 0 in the totals.
+- The SP split into BASE and INNO uses our INNO forecast (INNO tab) because the SP tab does not separate them.
+- OSP-SP is assumed to be additional to the SP tab (it contains lines that are not in SP and months where OSP-SP > SP).
 - Trends and accuracy rely on the % provided by the system; if the system changes its definitions they must be reviewed.
-- System Q1/FY values for SPP3/WAPE3 are not used: only closed months are shown.
-- BASE/INNO rows whose product line has no IPPL Line in IPPL MAP 1 are not assigned to any line.
+- BASE / INNO / OSP rows whose product line has no IPPL Line in IPPL MAP 1 are not assigned to any line.
 - Some chart legends show empty entries when there are fewer lines than slots (Excel limitation without extra macros).
 - EPOS will be reviewed later (structure and mapping).
 
 ---
 
-## 14. Next steps / improvements
+## 15. Next steps / improvements
 
-1. **Consider cuts in trends and actuals.** The BASE/INNO extracts include "o9 Cuts" and "Cuts YA" columns that are not used today. Next step: add the cut volume back to actuals (and year-ago actuals) so that sell-in trends, LY and accuracy reflect unconstrained demand rather than shipped volume after cuts, with an option to show both views.
-2. **Identify forecast layers.** Split the forecast into its layers (e.g. statistical baseline, promotions/events, innovation, management adjustments) so the gap vs SP can be explained by layer instead of only as a total.
-3. **Identify past promotional or exceptional activities.** Flag months/products affected by promotions, one-off deals, launches, stock-outs or other exceptional events, so that trends, LY projections and accuracy can be read (or recalculated) excluding those effects.
-4. **Flexibility to add more houses and PLs to the scope.** The input tabs and TABLE already pick up new houses, IPPL Lines and PLs automatically within the current capacities (SP 200 rows, BASE/INNO 500 rows each, 150 IPPL Lines, 30 houses). Next step: extend the scope to more houses/brands, keep IPPL MAP 1 complete for every new product line, raise capacities if needed and review chart readability when many lines are selected.
+1. **Consider cuts in trends and actuals.** The extracts include "o9 Cuts" and "Cuts YA" columns that are not used today. Add the cut volume back to actuals (and year-ago actuals) so that sell-in trends, LY and accuracy reflect unconstrained demand, with an option to show both views.
+2. **Identify more forecast layers.** OSP is now a separate layer; next candidates: statistical baseline, promotions/events, management adjustments.
+3. **Identify past promotional or exceptional activities.** Flag months/products affected by promotions, one-off deals, launches, stock-outs or other events, so that trends, LY projections and accuracy can be read excluding those effects.
+4. **Flexibility to add more houses and PLs to the scope.** Keep IPPL MAP 1 and PLANNER complete for every new product line / house, raise capacities if needed and review chart readability when many lines are selected.
 
 ---
 
-## 15. Frequently asked questions (short answers)
+## 16. Frequently asked questions (short answers)
 
-**What is BASE?** The system forecast by product line ("Act + Fcst" column), formerly called REAS. It contains actuals in closed months and forecast in future months.
+**What is FCST?** Our forecast: the sum of the selected layers (BASE, INNO and OSP tabs).
 
-**Why is SP compared with BASE + INNO?** Because SP includes innovations and BASE does not. To compare without innovations use Remove INNO = Yes (SP − INNO vs BASE).
+**What is OSP?** One-shot promotions. Our forecast is in the OSP tab; the Sales plan for them is in the OSP-SP tab.
 
-**Can SP − INNO be negative?** No: it is floored at 0 per IPPL Line and month.
+**Why is the SP split into BASE and INNO parts?** The SP tab contains BASE and INNO together; the INNO forecast is used to separate them (SP INNO part = MIN(SP, INNO), BASE part = the rest).
 
-**What does a positive Gap % mean?** BASE (+ INNO) is above SP: the system forecast expects more volume than the plan.
+**Can the SP BASE part be negative?** No: it is floored at 0 per IPPL Line and month.
+
+**How do I compare only BASE (like the old "Remove INNO")?** Include BASE = Yes, Include INNO = No, Include OSP = No (or Yes to keep OSP on both sides).
+
+**What does a positive Gap % mean?** FCST is above SP: our forecast expects more volume than the plan.
 
 **What does a negative SPP3 mean?** Over-forecast: actuals came in below what was forecast 3 months earlier.
 
-**Why don't trends change when I move Month from/to?** They always measure the last 6/12 closed months (to Sep-26) vs last year.
+**Why don't trends change when I move Month from/to?** They always measure the last 6/12 closed months vs last year.
+
+**When does the last closed month change?** Automatically, when the system extract brings SPP3 values for a new month.
+
+**What does the Planner filter do?** It keeps only the houses owned by that planner (PLANNER tab) in every figure, chart and dropdown.
 
 **Why does a trend show n/a?** There is no last-year volume (new product or line) or no match in EPOS.
 
-**How is the projection calculated?** LY of the month × (1 + selected trend); the trend can be sell-in, sell-out or manual.
-
 **Where is the exported PDF saved?** In the same folder as the Excel file (or in Downloads, with a message, if that folder cannot be written). Name REAS_2_EXPORT_YYMMDDHHMMSS.pdf.
 
-**What do I do if I add a new house or line?** Just paste it in SP/BASE/INNO; it appears automatically in TABLE, dropdowns and charts.
-
-**Why can't I see the data tabs?** They are hidden on purpose; right-click a tab → Unhide.
+**Why can't I see the data tabs?** They are hidden on purpose (and hidden again on every open); right-click a tab → Unhide.
 
 ---
 
-## 16. Glossary
-- **SP:** Sales Plan.
+## 17. Glossary
+- **SP:** Sales Plan (SP tab = BASE + INNO).
+- **OSP:** One-shot promotions (OSP tab = our forecast; OSP-SP tab = Sales plan).
+- **FCST:** our forecast = selected layers of BASE + INNO + OSP.
 - **BASE:** system forecast by product line (formerly REAS).
 - **INNO:** innovation volume.
 - **IPPL Line:** product planning group (the level at which SP exists).
 - **PL:** Product line.
+- **Planner:** team member owning a house (PLANNER tab).
 - **LY / YA:** Last Year / Year Ago (same month of the previous year).
 - **L6M / L12M:** last 6 / 12 closed months.
 - **L26W / L52W:** last 26 / 52 weeks (sell-out).
