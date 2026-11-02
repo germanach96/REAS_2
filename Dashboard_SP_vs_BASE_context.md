@@ -1,11 +1,11 @@
-# Context document: "SP vs FCST" Dashboard (file REAS_2_261101_ver3.xlsm)
+# Context document: "SP vs FCST" Dashboard (final file FY27/2611/REAS_2_261101.xlsm)
 
 > **Instructions for any AI assistant reading this document**
 > - This is a self-contained, plain-text description of an Excel demand-planning dashboard (Coty, Barcelona Supply Chain Hub). It does not depend on any specific AI tool, plugin or file access.
 > - Treat it as the source of truth to answer questions about what the dashboard shows, where the data comes from, how each figure is calculated, how to update it, its limitations and how to interpret the results.
 > - If a question is not covered here, say so explicitly instead of guessing. Do not invent figures: the only numbers you can quote are the ones in this document (section 12) or numbers the user gives you.
 > - The dashboard was built with the help of an AI assistant and validated by recalculating the figures independently.
-> - Version history: the 30-Oct-2026 version compared SP vs BASE (+ INNO) with a "Remove INNO" switch. **ver2 (data of 01-Nov-2026)** adds the OSP layer, a layer selector (BASE / INNO / OSP), a Planner filter, charts by House, a 7-slide export and automatic detection of the last closed month. **ver3** adds the exclusion of up to 3 product lines (3 dropdowns). ver2 and ver3 are not final yet; final versions are stored in `<FY>/<YYMM>/` (e.g. `FY27/2611/`).
+> - Version history: the 30-Oct-2026 version compared SP vs BASE (+ INNO) with a "Remove INNO" switch. **ver2 (data of 01-Nov-2026)** adds the OSP layer, a layer selector (BASE / INNO / OSP), a Planner filter, charts by House, a 7-slide export and automatic detection of the last closed month. **ver2 was chosen as the final version** and is stored as `FY27/2611/REAS_2_261101.xlsm` (final versions live in `<FY>/<YYMM>/`). **ver3** (`REAS_2_261101_ver3.xlsm`, at the root, not final) is ver2 plus the exclusion of up to 3 product lines; the items marked "(ver3 only)" below exist only in that file.
 
 ---
 
@@ -81,10 +81,10 @@ Monthly "Act + Fcst" columns used in BASE / INNO / OSP: Jul-26 CP, Aug-26 DC, Se
 | Include INNO | C12 | Yes / No | Includes the INNO layer on both sides. |
 | Include OSP | C13 | Yes / No | Includes the OSP layer on both sides. |
 | Product line | C14 | All + PLs within the Planner/House/IPPL filter | Product-line view (see §8). If the PL does not fit the filter (or is excluded), a warning appears and everything is shown. |
-| Exclude product line 1 / 2 / 3 | C15 / C16 / C17 | (none) + PLs within the Planner/House/IPPL filter | Removes up to 3 product lines (see §5.1). |
-| Remove excluded PLs from SP too | C18 | Yes / No | Yes (default): the forecast of the excluded PLs is also deducted from the SP. No: they are removed from FCST only. |
+| Exclude product line 1 / 2 / 3 (ver3 only) | C15 / C16 / C17 | (none) + PLs within the Planner/House/IPPL filter | Removes up to 3 product lines (see §5.1). |
+| Remove excluded PLs from SP too (ver3 only) | C18 | Yes / No | Yes (default): the forecast of the excluded PLs is also deducted from the SP. No: they are removed from FCST only. |
 
-Warnings and notices are shown in F15; the list of excluded product lines in F16. Trends and forecast accuracy **do not depend** on Month from / Month to (they always use the closed months).
+Warnings and notices are shown in F15 (ver3: the list of excluded product lines in F16). Trends and forecast accuracy **do not depend** on Month from / Month to (they always use the closed months).
 
 ---
 
@@ -105,7 +105,7 @@ Only then is it summed to house / planner / total. Consequences:
 - SP − INNO is never negative (SP and the INNO plan are planned by different people). A negative INNO forecast is treated as 0 when splitting the SP.
 - No layer selected: everything is 0 and a warning appears.
 
-### 5.1 Excluding product lines (ver3)
+### 5.1 Excluding product lines (ver3 only)
 - The excluded PLs (matched by name, in any layer) are removed from: FCST (every layer, total, by House / IPPL Line / month), sell-in trends, LY and projections, forecast accuracy, the PL rankings, charts and table, and sell-out (EPOS line with the same name).
 - SP does not exist by product line. With **Remove excluded PLs from SP too = Yes**, the forecast of the excluded PLs of each layer is deducted from the SP part of that layer, per IPPL Line and month, floored at 0 (same idea as splitting INNO out of the SP): SP BASE part − excluded BASE, SP INNO part − excluded INNO, OSP-SP − excluded OSP. With **No**, the SP is unchanged and only FCST loses the volume (the gap then shows the full volume of the excluded PLs).
 - The excluded PLs are shown in F16 and in the filter line of every exported slide.
@@ -220,7 +220,7 @@ Capacities: SP 200 rows, OSP-SP 200, BASE / INNO / OSP 500 each, EPOS 600, 150 I
 | LY (Nov-26 → Jun-27) | 556,365,725 |
 
 Other examples (all layers, Nov-26 → Jun-27):
-- Excluding Burberry Her EDP, Goddess Amber Vanilla and Burberry Multiline (removed from SP too): SP 500,192,902 vs FCST 526,094,915 (+5.2%).
+- (ver3 only) Excluding Burberry Her EDP, Goddess Amber Vanilla and Burberry Multiline (removed from SP too): SP 500,192,902 vs FCST 526,094,915 (+5.2%).
 - Planner = Adria: SP 237,954,161 vs FCST 243,924,326 (+2.5%).
 - Planner = German, House = Gucci: SP 90,730,106 vs FCST 103,345,071 (+13.9%).
 - House = Gucci, BASE only: SP BASE part 49,650,568 vs BASE 48,410,379 (−2.5%).
