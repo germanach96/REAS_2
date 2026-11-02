@@ -162,7 +162,7 @@ A month is closed when any BASE / INNO / OSP row has an SPP3 value for it. With 
 ## 8. Product-line view (filter C14)
 - SP does not exist at PL level: it is hidden (KPIs "n/a", no SP line in charts) and a notice appears.
 - FCST (selected layers), LY, projections, sell-in / sell-out trends and SPP3 / WAPE3 are calculated for that PL only.
-- Charts by House and by IPPL Line keep showing the full lines as a reference.
+- Charts, tables and trends by House and by IPPL Line show only the House / IPPL Line that holds that PL, with the FCST of that PL only (SP bars = 0 and "n/a" in the IPPL table, because SP does not exist by PL); sell-in / sell-out trends by IPPL Line use only that PL.
 - PL list = PLs of BASE, then PLs of INNO / OSP that are not in BASE.
 
 ---
