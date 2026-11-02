@@ -5,7 +5,7 @@
 > - Treat it as the source of truth to answer questions about what the dashboard shows, where the data comes from, how each figure is calculated, how to update it, its limitations and how to interpret the results.
 > - If a question is not covered here, say so explicitly instead of guessing. Do not invent figures: the only numbers you can quote are the ones in this document (section 12) or numbers the user gives you.
 > - The dashboard was built with the help of an AI assistant and validated by recalculating the figures independently.
-> - Version history: the 30-Oct-2026 version compared SP vs BASE (+ INNO) with a "Remove INNO" switch. **ver2 (data of 01-Nov-2026)** adds the OSP layer, a layer selector (BASE / INNO / OSP), a Planner filter, charts by House, a 7-slide export (9 slides since the gap heatmaps were added) and automatic detection of the last closed month. **ver2 was chosen as the final version** and is stored as `FY27/2611/REAS_2_261101.xlsm` (final versions live in `<FY>/<YYMM>/`). **ver3** (`REAS_2_261101_ver3.xlsm`, at the root, not final) is ver2 plus the exclusion of up to 3 product lines; the items marked "(ver3 only)" below exist only in that file.
+> - Version history: the 30-Oct-2026 version compared SP vs BASE (+ INNO) with a "Remove INNO" switch. **ver2 (data of 01-Nov-2026)** adds the OSP layer, a layer selector (BASE / INNO / OSP), a Planner filter, charts by House, a 7-slide export (9 slides since the gap heatmaps were added) and automatic detection of the last closed month. **ver2 was chosen as the final version** and is stored as `FY27/2611/REAS_2_261101.xlsm` (final versions live in `<FY>/<YYMM>/`). **ver3** (`extra_features/REAS_2_261101_ver3.xlsm`, extra-features folder, not part of the final version) is ver2 plus the exclusion of up to 3 product lines; the items marked "(ver3 only)" below exist only in that file.
 
 ---
 
@@ -126,7 +126,7 @@ Labels show the layers in use, e.g. "SP (BASE + INNO + OSP)" and "FCST (BASE + I
 8. **Detail by House** (period total, SP vs FCST, horizontal bars, sorted by the larger of SP and FCST) and **Detail by IPPL Line** (top 30 by SP), side by side.
 9. **Detail by product line** (FCST, top 25 by volume).
 10. **Monthly history by House** (one line per house; metric per filter C10), **by IPPL Line** (top 30 by SP) and **by product line** (FCST, top 25).
-11. **Gap FCST vs SP by month — by House and by IPPL Line** (heatmap tables, above the trends section): FCST − SP per month for every house / the top 30 IPPL Lines in the filter, with a range total; red = FCST below SP, green = FCST above SP. Only months in the range that have SP are filled; follows every filter (planner, house, IPPL Line, layers; ver3: exclusions); n/a in the product-line view.
+11. **Gap FCST vs SP by month — by House and by IPPL Line** (heatmap tables, above the trends section): FCST − SP per month for every house / the top 30 IPPL Lines in the filter, with a range total; red = FCST below SP, green = FCST above SP. Only months in the range that have SP are filled; follows every filter (planner, house, IPPL Line, layers); n/a in the product-line view. (Final version only; not in ver3.)
 12. **Sell-in vs sell-out trends by IPPL Line** (chart) and tables by IPPL Line and by product line (PL table: BASE, INNO, OSP, FCST, trends, IPPL Line).
 
 ---
