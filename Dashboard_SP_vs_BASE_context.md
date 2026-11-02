@@ -81,6 +81,7 @@ Monthly "Act + Fcst" columns used in BASE / INNO / OSP: Jul-26 CP, Aug-26 DC, Se
 | Include INNO | C12 | Yes / No | Includes the INNO layer on both sides. |
 | Include OSP | C13 | Yes / No | Includes the OSP layer on both sides. |
 | Product line | C14 | All + PLs within the Planner/House/IPPL filter | Product-line view (see §8). If the PL does not fit the filter (or is excluded), a warning appears and everything is shown. |
+| Month for trends | C15 | Closed months (default: last closed month) | End month of the sell-in trend windows; uses the "% L6M vs YA" / "% L12M vs YA" columns of that month (see §7.1). |
 | Exclude product line 1 / 2 / 3 (ver3 only) | C15 / C16 / C17 | (none) + PLs within the Planner/House/IPPL filter | Removes up to 3 product lines (see §5.1). |
 | Remove excluded PLs from SP too (ver3 only) | C18 | Yes / No | Yes (default): the forecast of the excluded PLs is also deducted from the SP. No: they are removed from FCST only. |
 
@@ -137,9 +138,9 @@ Labels show the layers in use, e.g. "SP (BASE + INNO + OSP)" and "FCST (BASE + I
 A month is closed when any BASE / INNO / OSP row has an SPP3 value for it. With the data of 01-Nov-2026 the closed months are **Jul–Oct 26** (last closed month **Oct-26**). Trend windows and accuracy move automatically when a new month is closed; nothing has to be edited.
 
 ### 7.1 Sell-in trends (selected layers, volume)
-- Windows: **L6M** = last 6 closed months, **L12M** = last 12 closed months (with Oct-26 closed: L6M = May-26 → Oct-26, L12M = Nov-25 → Oct-26). FY26 months come from the Year Ago columns of the equivalent FY27 months; closed FY27 months from "Act + Fcst".
-- The last-year volume of each row is derived from the % provided by the system (FY columns J "% L12M vs YA" and K "% L6M vs YA", which match the last closed month): **YA = Act / (1 + %)**. The aggregate is volume-weighted: **trend = ΣAct / ΣYA − 1**.
-- Products with no history (launches) count with YA = 0; if the whole selection is new, the trend shows **n/a**.
+- Windows end at the **Month for trends** (filter C15, closed months only; default = last closed month): **L6M** = the 6 months ending there, **L12M** = the 12 months ending there (e.g. Oct-26: L6M = May-26 → Oct-26, L12M = Nov-25 → Oct-26). FY26 months come from the Year Ago columns of the equivalent FY27 months; FY27 months from "Act + Fcst".
+- Last-year volume of each row: **YA = Act / (1 + %)**, with the system "% L6M vs YA" (6M) or "% L12M vs YA" (12M) **of the selected month** (month-level columns, e.g. Oct-26: EK and EJ). The aggregate is volume-weighted: **trend = ΣAct / ΣYA − 1**.
+- Rows without that % (mostly discontinued items with no current volume, where the % would be −100%, and launches): their YA is **estimated** from their Year Ago columns of the window months available in FY27, scaled to 6 / 12 months (launches → YA = 0). The Dashboard note (row 16) shows the share of volume that uses the system % ("coverage"; Oct-26: 70% for 6M, 77% for 12M). Earlier versions counted these rows with YA = 0, which inflated the trends (e.g. Total 6M +14.1% instead of +5.8%).
 - Only rows of the included layers count.
 
 ### 7.2 Sell-out trends (EPOS, $)
@@ -216,7 +217,7 @@ Capacities: SP 200 rows, OSP-SP 200, BASE / INNO / OSP 500 each, EPOS 600, 150 I
 | BASE: FCST vs SP BASE part | 291,976,463 vs 305,926,681 (−4.6%) |
 | INNO: FCST vs SP INNO part | 149,150,360 vs 130,887,972 (+14.0%) |
 | OSP: FCST vs OSP-SP | 123,914,541 vs 94,206,347 (+31.5%) |
-| Sell-in 6M / 12M (closed to Oct-26) | +14.1% / +6.9% |
+| Sell-in 6M / 12M (Month for trends = Oct-26) | +5.8% / +4.4% (BASE −5.0% / +4.2%, INNO +59.4% / +21.8%, OSP −1.9% / −5.7%) |
 | Sell-out 6M / 12M (EPOS) | +2.7% / −0.2% |
 | SPP3 Jul / Aug / Sep / Oct 26 | −0.7% / −19.2% / −9.9% / −12.1% |
 | WAPE3 Jul / Aug / Sep / Oct 26 | 45.0% / 58.9% / 41.5% / 42.7% |
