@@ -1,4 +1,4 @@
-# Context document: "SP vs FCST" Dashboard (final file FY27/2611/REAS_2_261101.xlsm)
+# Context document: "SP vs FCST" Dashboard (latest file FY27/2611/REAS_2_261103.xlsm)
 
 > **Instructions for any AI assistant reading this document**
 > - This is a self-contained, plain-text description of an Excel demand-planning dashboard (Coty, Barcelona Supply Chain Hub). It does not depend on any specific AI tool, plugin or file access.
@@ -6,7 +6,7 @@
 > - If a question is not covered here, say so explicitly instead of guessing. Do not invent figures: the only numbers you can quote are the ones in this document (sections 12 and 18) or numbers the user gives you.
 > - To test or audit the sell-in / sell-out trends, use section 18 (formulas, cell map, worked examples and reference values).
 > - The dashboard was built with the help of an AI assistant and validated by recalculating the figures independently.
-> - Version history: the 30-Oct-2026 version compared SP vs BASE (+ INNO) with a "Remove INNO" switch. **ver2 (data of 01-Nov-2026)** adds the OSP layer, a layer selector (BASE / INNO / OSP), a Planner filter, charts by House, a 7-slide export (9 slides since the gap heatmaps were added) and automatic detection of the last closed month. **ver2 was chosen as the final version** and is stored as `FY27/2611/REAS_2_261101.xlsm` (final versions live in `<FY>/<YYMM>/`). **ver3** (`extra_features/REAS_2_261101_ver3.xlsm`, extra-features folder, not part of the final version) is ver2 plus the exclusion of up to 3 product lines; the items marked "(ver3 only)" below exist only in that file.
+> - Version history: the 30-Oct-2026 version compared SP vs BASE (+ INNO) with a "Remove INNO" switch. **ver2 (data of 01-Nov-2026)** adds the OSP layer, a layer selector (BASE / INNO / OSP), a Planner filter, charts by House, a 7-slide export (9 slides since the gap heatmaps were added) and automatic detection of the last closed month. **ver2 was chosen as the final version** and is stored as `FY27/2611/REAS_2_261101.xlsm` (final versions live in `<FY>/<YYMM>/`). **ver3** (`extra_features/REAS_2_261101_ver3.xlsm`, extra-features folder, not part of the final version) is ver2 plus the exclusion of up to 3 product lines; the items marked "(ver3 only)" below exist only in that file. **REAS_2_261103.xlsm (03-Nov-2026)** is the same tool with a new BASE / INNO / OSP extract (SP, OSP-SP, EPOS and PLANNER unchanged) plus the rule "past months: SP = FCST" (§5.2). Sections 12 and 18 keep the figures of the 01-Nov file; the 03-Nov figures are in §12.1.
 
 ---
 
@@ -82,7 +82,7 @@ Monthly "Act + Fcst" columns used in BASE / INNO / OSP: Jul-26 CP, Aug-26 DC, Se
 | Include INNO | C12 | Yes / No | Includes the INNO layer on both sides. |
 | Include OSP | C13 | Yes / No | Includes the OSP layer on both sides. |
 | Product line | C14 | All + PLs within the Planner/House/IPPL filter | Product-line view (see §8). If the PL does not fit the filter (or is excluded), a warning appears and everything is shown. |
-| Month for trends | C15 | Closed months (default: last closed month) | End month of the sell-in trend windows; uses the "% L6M vs YA" / "% L12M vs YA" columns of that month (see §7.1). |
+| Month for trends | C15 | Closed months (default: last closed month) | End month of the sell-in trend windows; uses the "% L6M vs YA" / "% L12M vs YA" columns of that month (see §7.1). It also defines the past months where SP = FCST (§5.2, 261103 onwards). |
 | Exclude product line 1 / 2 / 3 (ver3 only) | C15 / C16 / C17 | (none) + PLs within the Planner/House/IPPL filter | Removes up to 3 product lines (see §5.1). |
 | Remove excluded PLs from SP too (ver3 only) | C18 | Yes / No | Yes (default): the forecast of the excluded PLs is also deducted from the SP. No: they are removed from FCST only. |
 
@@ -106,6 +106,11 @@ Only then is it summed to house / planner / total. Consequences:
 - BASE + INNO only: exactly the old "Remove INNO = No" comparison (SP vs BASE + INNO).
 - SP − INNO is never negative (SP and the INNO plan are planned by different people). A negative INNO forecast is treated as 0 when splitting the SP.
 - No layer selected: everything is 0 and a warning appears.
+
+### 5.2 Past months: SP = FCST (from REAS_2_261103)
+- The SP / OSP-SP tabs have no past months. For every month up to the **Month for trends** (C15; default = last closed month, Oct-26), the SP of each layer is set equal to its FCST, per IPPL Line and month: SP BASE part = BASE, SP INNO part = INNO, OSP part = OSP (i.e. the actuals already in the forecast).
+- Effect: those months show SP = FCST (gap 0) in every table, chart and heatmap, and ranges that include them (e.g. Jul-26 → Jun-27) give full-year SP vs FCST. Months after the Month for trends use the SP tabs as before; a month between the Month for trends and the first SP month (e.g. Month for trends = Aug-26 → Sep–Oct 26) has no SP.
+- DASH CALC: row 67 = flag (month ≤ B28); rows 3201–3750 (SP parts) use the FCST blocks of TABLE when the flag is 1; row 65 = SP available (flag or SP tabs); row 68 = the SP tabs have data; B27 = first month with SP in the tabs.
 
 ### 5.1 Excluding product lines (ver3 only)
 - The excluded PLs (matched by name, in any layer) are removed from: FCST (every layer, total, by House / IPPL Line / month), sell-in trends, LY and projections, forecast accuracy, the PL rankings, charts and table, and sell-out (EPOS line with the same name).
@@ -233,10 +238,24 @@ Other examples (all layers, Nov-26 → Jun-27):
 
 ---
 
+### 12.1 REAS_2_261103.xlsm (data of 03-Nov-2026, all filters = All, Month for trends = Oct-26)
+| Indicator | Nov-26 → Jun-27 (default range) | Jul-26 → Jun-27 (full year) |
+|---|---|---|
+| SP (BASE + INNO + OSP) | 531,020,999 | 913,405,705 |
+| FCST (BASE + INNO + OSP) | 526,034,262 | 908,418,968 |
+| Gap | −4,986,737 (−0.9%) | −4,986,737 (Jul–Oct gap = 0) |
+| Sell-in 6M / 12M | −2.6% / −11.2% | (trends do not depend on the range) |
+| Volume with system % (coverage) 6M / 12M | 50% / 44% | |
+
+Full year by layer (FCST vs SP part): BASE 453,521,596 vs 493,509,048; INNO 228,897,745 vs 211,228,872; OSP 225,999,627 vs 208,667,785.
+
+Note on the 03-Nov extract: the month-level "% L6M / % L12M vs YA" columns are much emptier than on 01-Nov (rows with % L6M in Oct-26: BASE 158 of 381, INNO 4 of 193, OSP 14 of 158; on 01-Nov: 268 of 402, 56 of 214, 89 of 187), so most of the trend is the YA-column estimate (§7.1).
+
 ## 13. Validation performed (ver2)
 - An independent recalculation (Python, straight from the input tabs, without the workbook formulas) was compared with the workbook recalculated in LibreOffice in 11 scenarios (default; planners Adria / German / Magalie / (unassigned); houses Gucci / BURBERRY; IPPL Line; product line; house not belonging to the planner; no layer; single layers and layer combinations; Oct–Dec range): SP, FCST, each layer, SP parts, sell-in trends, SPP3 / WAPE3 for the 12 months, LY by month and SP / FCST by house match exactly in every scenario, with no formula errors.
 - ver3: the same comparison in 15 scenarios (the 11 above plus exclusions of 1–3 PLs, with and without removal from SP, combined with planner / house / layer filters, and a PL that is both selected and excluded): no mismatches and no formula errors. With no exclusion, ver3 gives exactly the ver2 figures.
 - The exported slides were rendered and checked (7 pages, charts within their slide).
+- REAS_2_261103: the values Excel calculated and saved in the file match the independent re-calculation (42 checks: totals, layers, SP parts, trends, accuracy, houses). After adding "past months: SP = FCST", 15 scenarios (including full-year ranges, Month for trends = Aug-26 and planner / house / layer filters) match with no formula errors.
 
 ---
 
