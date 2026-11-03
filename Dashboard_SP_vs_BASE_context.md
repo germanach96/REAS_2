@@ -6,7 +6,7 @@
 > - If a question is not covered here, say so explicitly instead of guessing. Do not invent figures: the only numbers you can quote are the ones in this document (sections 12 and 18) or numbers the user gives you.
 > - To test or audit the sell-in / sell-out trends, use section 18 (formulas, cell map, worked examples and reference values).
 > - The dashboard was built with the help of an AI assistant and validated by recalculating the figures independently.
-> - Version history: the 30-Oct-2026 version compared SP vs BASE (+ INNO) with a "Remove INNO" switch. **ver2 (data of 01-Nov-2026)** adds the OSP layer, a layer selector (BASE / INNO / OSP), a Planner filter, charts by House, a 7-slide export (9 slides since the gap heatmaps were added) and automatic detection of the last closed month. **ver2 was chosen as the final version** and is stored as `FY27/2611/REAS_2_261101.xlsm` (final versions live in `<FY>/<YYMM>/`). **ver3** (`extra_features/REAS_2_261101_ver3.xlsm`, extra-features folder, not part of the final version) is ver2 plus the exclusion of up to 3 product lines; the items marked "(ver3 only)" below exist only in that file. **REAS_2_261103.xlsm (03-Nov-2026)** is the same tool with a new BASE / INNO / OSP extract (SP, OSP-SP, EPOS and PLANNER unchanged) plus the rule "past months: SP = FCST" (§5.2). Sections 12 and 18 keep the figures of the 01-Nov file; the 03-Nov figures are in §12.1. **REAS_2_261103_DA.xlsm** (repository root, in development) is REAS_2_261103 plus the DA and GSP input tabs and the new **DA IMPACT** tab (impact of the Demand Assumptions on the FCST, §19).
+> - Version history: the 30-Oct-2026 version compared SP vs BASE (+ INNO) with a "Remove INNO" switch. **ver2 (data of 01-Nov-2026)** adds the OSP layer, a layer selector (BASE / INNO / OSP), a Planner filter, charts by House, a 7-slide export (9 slides since the gap heatmaps were added) and automatic detection of the last closed month. **ver2 was chosen as the final version** and is stored as `FY27/2611/REAS_2_261101.xlsm` (final versions live in `<FY>/<YYMM>/`). **ver3** (`extra_features/REAS_2_261101_ver3.xlsm`, extra-features folder, not part of the final version) is ver2 plus the exclusion of up to 3 product lines; the items marked "(ver3 only)" below exist only in that file. **REAS_2_261103.xlsm (03-Nov-2026)** is the same tool with a new BASE / INNO / OSP extract (SP, OSP-SP, EPOS and PLANNER unchanged) plus the rule "past months: SP = FCST" (§5.2). Sections 12 and 18 keep the figures of the 01-Nov file; the 03-Nov figures are in §12.1.
 
 ---
 
@@ -415,66 +415,3 @@ The method before the "Month for trends" change (FY % columns, rows without % = 
 
 ### 18.6 How these values were checked
 The figures in 18.4 were produced by an independent Python re-calculation (reading the input tabs directly) and match the workbook recalculated in LibreOffice to 6 decimals in every case tested (15 filter scenarios, trend months Jul–Oct).
-
----
-
-## 19. DA impact (Demand Assumptions) — `REAS_2_261103_DA.xlsm` (in development, separate tab)
-
-**Status:** new feature, built in its own tabs (**DA IMPACT**, visible, and **DA CALC**, hidden). It is not in the Dashboard nor in the EXPORT slides yet ("first a separate tab, later we decide how to incorporate it"). The file lives in the repository root while it is being developed; the rest of the workbook (Dashboard, EXPORT, TABLE, DASH CALC) is unchanged.
-
-### 19.1 What a DA is and what the tab shows
-- **DAs (Demand Assumptions)** are adjustments that planners load on top of the system forecast (pipe fills, new doors, promotions, deletes, "Prometheus" removals, etc.). They come in **units**, by EAN and month (DA tab).
-- **The DAs are already included in the FCST.** The tab does not change the forecast: it splits it into **Base FCST (without DA) + DA impact = FCST final**. The FCST final is always the same number as in the Dashboard for the same filters.
-  - Example: FCST = 100k $, DA = −10k $ → Base FCST = 110k $, DA = −10k $, FCST final = 100k $.
-  - Example: FCST = 100k $, DA = +10k $ → Base FCST = 90k $, DA = +10k $, FCST final = 100k $.
-- To compare with the FCST (which is in $), the DA units are valued with the **GSP** (GSP tab, price per EAN).
-
-### 19.2 New input tabs
-| Tab | Content |
-|---|---|
-| **DA** | One row per DA and EAN. Row 1 = month of each value column (dates, J1…), row 2 = headers, data from row 3. Columns: A Reason_Code, B DA Description, C Initiative Type, D Created by, E Submission Date, F House, G Product Line, H EAN, I Measure, J… monthly units (8 months Nov-26 → Jun-27 in this extract; up to 12 columns J–U are read; months outside FY27 are ignored). Capacity rows 3–4002. |
-| **GSP** | Price per EAN: A CFG, B EAN, C Currency, D Product Line ("Name (code)"), E Brand, F House, G Month ("2026.M08"), H GSP EAN Raw. Capacity rows 2–3001. |
-
-### 19.3 Calculation (DA CALC)
-For each DA row:
-1. **Units by FY month**: the date in DA row 1 is matched to the FY27 months (Jul-26 … Jun-27).
-2. **GSP**: value of the EAN in the GSP tab (if the EAN appears in several months, the latest month). If the EAN is not in the GSP tab → **average GSP of its product line** (GSP product line mapped with IPPL MAP 2, or the name without the "(code)"), then **average GSP of its house**; if none → 0 (counted as $0 and flagged).
-3. **DA $ = units × GSP.**
-4. **Mapping**: the product line (DA column G) is looked up in BASE, INNO and OSP (exact name, then trimmed) → IPPL Line (column A of that tab) → TABLE line → House and Planner (exactly as the FCST in the Dashboard). PLs not found, or without an IPPL Line in TABLE, are "not mapped to the FCST" and shown separately.
-5. **Layer split**: a product line can be in BASE, INNO and OSP. The DA $ of each month is split between the layers **in proportion to the FCST of that product line in that month** (Act + Fcst of the month, negatives = 0). If the product line has no FCST that month: all to BASE, else INNO, else OSP. (The extract is by product line, so the layer of each EAN is not known; this is the assumption to review.)
-6. **Aggregation** with the filters: FCST final = TABLE (selected layers, filtered lines, months in range) — same as the Dashboard; DA = Σ DA $ of the selected layers; **Base FCST = FCST final − DA**. DA + = sum of the positive DA values (row × month), DA − = sum of the negative ones.
-
-### 19.4 DA IMPACT tab (layout)
-- **Filters (yellow)**: Planner, House, IPPL Line, Month from / to, Include BASE / INNO / OSP, DA reason code (All or one). Invalid combinations fall back to "All" with a warning in row 15 (same logic as the Dashboard).
-- **KPIs**: FCST final, Base FCST (without DA), DA impact (net), DA % of FCST, DA + (adds to Base), DA − (removes from Base), DA units (net), period. **Breakdown** box: Base FCST + DA = FCST final (same as the Dashboard).
-- **Monthly table** (12 FY months + range total): FCST final, Base FCST, DA net, DA +, DA −, DA % of FCST, DA by layer, DA units. Months outside the range in grey.
-- **Charts**: (1) by month: grey = Base FCST kept in the FCST final, green = DA that adds (grey + green = FCST final), red hatched = DA that removes (grey + red = Base FCST), dark line with labels = FCST final; (2) bridge Base FCST → + DA → − DA → FCST final (range total); (3) DA by reason code; (4) DA by House (top 15).
-- **Tables**: by House (all, sorted by |DA|), by IPPL Line (top 30 by |DA|), by reason code (DA +, DA −, net, %, units, # lines), top 25 DAs by |$| (description, $, units, # lines, created by, reason code).
-- **Data quality**: share of DA units priced with the EAN GSP / PL average / house average / no GSP; DA not mapped to the FCST; IPPL Lines where the DA $ is larger than the FCST (Base FCST < 0).
-- Colours: positive DA figures green, negative red (conditional formatting). "n/m" = % not meaningful (FCST ≤ 0 or |%| > 999%).
-
-### 19.5 Reference figures (data of 03-Nov-2026, all filters = All, Nov-26 → Jun-27)
-| Indicator | Value |
-|---|---|
-| FCST final (BASE + INNO + OSP) | 526,034,262 (= Dashboard) |
-| Base FCST (without DA) | 431,632,030 |
-| DA impact (net) | +94,402,232 (17.9% of FCST, +21.9% vs Base) |
-| DA + / DA − | +216,170,205 / −121,767,973 |
-| DA units (net) | 2,018,691 |
-| DA by layer | BASE +31,189,041 · INNO +45,410,399 · OSP +17,802,792 |
-| Top houses | BURBERRY +34.7M · Gucci +32.8M · Kylie Jenner Fragrances +15.8M · Hugo Boss −5.7M |
-| Top reason codes | OSP & Initiatives +72.7M · Market Specifics +13.2M · Promo +7.4M · Reasonability/Completeness −5.5M |
-| GSP source (DA units) | EAN 16% · PL average 38% · house average 44% · no GSP 2% (Gucci Make up, Infiniment Coty Paris, Orveda) |
-| DA not mapped to the FCST | 9 DA lines, 1,293 units (CK One Summer, Orveda Sun / Treatment Kit) |
-| IPPL Lines with Base FCST < 0 | 8 (−11.1M in total), e.g. Gucci Guilty Men's Extension, Burberry Her Parfum, Gorgeous Orchid Intense, Goddess Amber Vanilla — mostly priced with PL / house averages |
-
-Other filters: Planner = Adria → FCST 241,439,282, DA +36,494,624; House = Gucci → FCST 103,309,215, DA +32,790,460; Jul-26 → Jun-27 → FCST 908,418,968, DA +94,402,232 (no DA before Nov-26).
-
-### 19.6 Points of attention
-- **GSP coverage is low**: only 16% of the DA units have the exact EAN in the GSP tab (the GSP tab has 1,025 EANs, the DA tab 1,203, and 901 DA EANs are missing — mostly make-up). The rest uses averages; adding the missing EANs to the GSP tab improves the result automatically.
-- **Base FCST < 0** in some lines means the DA $ is larger than the FCST of the line: either the GSP used is higher than the price behind the FCST $ (averages, new launches) or the DA units do not fully reach the FCST. Check those EANs.
-- The layer split (19.3 step 5) is an assumption because the DA has no layer; if the EAN → layer is known in the future it can replace it.
-- Macro: `ShowOnlyDashboard` (Workbook_Open) now keeps **Dashboard and DA IMPACT** visible. The VBA source was changed and the compiled cache invalidated, so Excel recompiles it the first time the file is opened.
-
-### 19.7 Validation
-An independent Python re-calculation (reading DA, GSP, BASE / INNO / OSP and TABLE directly) was compared with the workbook recalculated in LibreOffice (BASE / INNO / OSP column A frozen to the values saved by Excel, because LibreOffice 24.2 has no XLOOKUP) in 14 filter scenarios (default; planners Adria / Magalie; houses Gucci / BURBERRY; house not of the planner; IPPL Line; INNO only; no INNO; no layer; reason codes; full year; reversed month range): FCST final, Base FCST, DA, DA +, DA −, units, DA by month, by house and by reason code match, and the FCST final equals the Dashboard. No formula errors in the DA IMPACT tab.
