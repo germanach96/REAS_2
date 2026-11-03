@@ -3,7 +3,8 @@
 > **Instructions for any AI assistant reading this document**
 > - This is a self-contained, plain-text description of an Excel demand-planning dashboard (Coty, Barcelona Supply Chain Hub). It does not depend on any specific AI tool, plugin or file access.
 > - Treat it as the source of truth to answer questions about what the dashboard shows, where the data comes from, how each figure is calculated, how to update it, its limitations and how to interpret the results.
-> - If a question is not covered here, say so explicitly instead of guessing. Do not invent figures: the only numbers you can quote are the ones in this document (section 12) or numbers the user gives you.
+> - If a question is not covered here, say so explicitly instead of guessing. Do not invent figures: the only numbers you can quote are the ones in this document (sections 12 and 18) or numbers the user gives you.
+> - To test or audit the sell-in / sell-out trends, use section 18 (formulas, cell map, worked examples and reference values).
 > - The dashboard was built with the help of an AI assistant and validated by recalculating the figures independently.
 > - Version history: the 30-Oct-2026 version compared SP vs BASE (+ INNO) with a "Remove INNO" switch. **ver2 (data of 01-Nov-2026)** adds the OSP layer, a layer selector (BASE / INNO / OSP), a Planner filter, charts by House, a 7-slide export (9 slides since the gap heatmaps were added) and automatic detection of the last closed month. **ver2 was chosen as the final version** and is stored as `FY27/2611/REAS_2_261101.xlsm` (final versions live in `<FY>/<YYMM>/`). **ver3** (`extra_features/REAS_2_261101_ver3.xlsm`, extra-features folder, not part of the final version) is ver2 plus the exclusion of up to 3 product lines; the items marked "(ver3 only)" below exist only in that file.
 
@@ -81,6 +82,7 @@ Monthly "Act + Fcst" columns used in BASE / INNO / OSP: Jul-26 CP, Aug-26 DC, Se
 | Include INNO | C12 | Yes / No | Includes the INNO layer on both sides. |
 | Include OSP | C13 | Yes / No | Includes the OSP layer on both sides. |
 | Product line | C14 | All + PLs within the Planner/House/IPPL filter | Product-line view (see §8). If the PL does not fit the filter (or is excluded), a warning appears and everything is shown. |
+| Month for trends | C15 | Closed months (default: last closed month) | End month of the sell-in trend windows; uses the "% L6M vs YA" / "% L12M vs YA" columns of that month (see §7.1). |
 | Exclude product line 1 / 2 / 3 (ver3 only) | C15 / C16 / C17 | (none) + PLs within the Planner/House/IPPL filter | Removes up to 3 product lines (see §5.1). |
 | Remove excluded PLs from SP too (ver3 only) | C18 | Yes / No | Yes (default): the forecast of the excluded PLs is also deducted from the SP. No: they are removed from FCST only. |
 
@@ -137,9 +139,9 @@ Labels show the layers in use, e.g. "SP (BASE + INNO + OSP)" and "FCST (BASE + I
 A month is closed when any BASE / INNO / OSP row has an SPP3 value for it. With the data of 01-Nov-2026 the closed months are **Jul–Oct 26** (last closed month **Oct-26**). Trend windows and accuracy move automatically when a new month is closed; nothing has to be edited.
 
 ### 7.1 Sell-in trends (selected layers, volume)
-- Windows: **L6M** = last 6 closed months, **L12M** = last 12 closed months (with Oct-26 closed: L6M = May-26 → Oct-26, L12M = Nov-25 → Oct-26). FY26 months come from the Year Ago columns of the equivalent FY27 months; closed FY27 months from "Act + Fcst".
-- The last-year volume of each row is derived from the % provided by the system (FY columns J "% L12M vs YA" and K "% L6M vs YA", which match the last closed month): **YA = Act / (1 + %)**. The aggregate is volume-weighted: **trend = ΣAct / ΣYA − 1**.
-- Products with no history (launches) count with YA = 0; if the whole selection is new, the trend shows **n/a**.
+- Windows end at the **Month for trends** (filter C15, closed months only; default = last closed month): **L6M** = the 6 months ending there, **L12M** = the 12 months ending there (e.g. Oct-26: L6M = May-26 → Oct-26, L12M = Nov-25 → Oct-26). FY26 months come from the Year Ago columns of the equivalent FY27 months; FY27 months from "Act + Fcst".
+- Last-year volume of each row: **YA = Act / (1 + %)**, with the system "% L6M vs YA" (6M) or "% L12M vs YA" (12M) **of the selected month** (month-level columns, e.g. Oct-26: EK and EJ). The aggregate is volume-weighted: **trend = ΣAct / ΣYA − 1**.
+- Rows without that % (mostly discontinued items with no current volume, where the % would be −100%, and launches): their YA is **estimated** from their Year Ago columns of the window months available in FY27, scaled to 6 / 12 months (launches → YA = 0). The Dashboard note (row 16) shows the share of volume that uses the system % ("coverage"; Oct-26: 70% for 6M, 77% for 12M). Earlier versions counted these rows with YA = 0, which inflated the trends (e.g. Total 6M +14.1% instead of +5.8%).
 - Only rows of the included layers count.
 
 ### 7.2 Sell-out trends (EPOS, $)
@@ -216,7 +218,7 @@ Capacities: SP 200 rows, OSP-SP 200, BASE / INNO / OSP 500 each, EPOS 600, 150 I
 | BASE: FCST vs SP BASE part | 291,976,463 vs 305,926,681 (−4.6%) |
 | INNO: FCST vs SP INNO part | 149,150,360 vs 130,887,972 (+14.0%) |
 | OSP: FCST vs OSP-SP | 123,914,541 vs 94,206,347 (+31.5%) |
-| Sell-in 6M / 12M (closed to Oct-26) | +14.1% / +6.9% |
+| Sell-in 6M / 12M (Month for trends = Oct-26) | +5.8% / +4.4% (BASE −5.0% / +4.2%, INNO +59.4% / +21.8%, OSP −1.9% / −5.7%) |
 | Sell-out 6M / 12M (EPOS) | +2.7% / −0.2% |
 | SPP3 Jul / Aug / Sep / Oct 26 | −0.7% / −19.2% / −9.9% / −12.1% |
 | WAPE3 Jul / Aug / Sep / Oct 26 | 45.0% / 58.9% / 41.5% / 42.7% |
@@ -306,3 +308,91 @@ Other examples (all layers, Nov-26 → Jun-27):
 - **WAPE3:** weighted absolute percentage error at lag 3 (Σ|Act − Fcst| / ΣAct).
 - **Lag 3:** forecast made 3 months before the month being measured.
 - **Cuts:** volume that could not be served (cut) versus the original demand.
+
+## 18. Testing the sell-in and sell-out trends (audit guide)
+
+This section is written so that the trends can be re-calculated by hand (or in another tool / conversation) and compared with the file. All references are to `FY27/2611/REAS_2_261101.xlsm` (data of 01-Nov-2026).
+
+### 18.1 Inputs used (BASE, INNO and OSP tabs, one row per product line, rows 5–504)
+Column A = IPPL Line, column B = Product line. Volumes are in thousands (the dashboard multiplies by 1000). For each FY27 month the block has 13 columns; the ones used for trends are:
+
+| Month | Act + Fcst | Year Ago (YA) | % L12M vs YA | % L6M vs YA | SPP3 % (closed-month flag) |
+|---|---|---|---|---|---|
+| Jul-26 | CP | CQ | CW | CX | CY |
+| Aug-26 | DC | DD | DJ | DK | DL |
+| Sep-26 | DP | DQ | DW | DX | DY |
+| Oct-26 | EC | ED | EJ | EK | EL |
+| Nov-26 | EP | EQ | EW | EX | EY |
+| Dec-26 | FC | FD | FJ | FK | FL |
+| Jan-27 | FP | FQ | FW | FX | FY |
+| Feb-27 | GC | GD | GJ | GK | GL |
+| Mar-27 | GP | GQ | GW | GX | GY |
+| Apr-27 | HC | HD | HJ | HK | HL |
+| May-27 | HP | HQ | HW | HX | HY |
+| Jun-27 | IC | ID | IJ | IK | IL |
+
+- "Act + Fcst" of a closed month = actual sell-in. "Year Ago" of a FY27 month = actual of the same month in FY26.
+- "% L6M vs YA" / "% L12M vs YA" of month m = the system trend of that product line for the 6 / 12 months ending in m (they are only filled for closed months: Jul–Oct 26 in this data).
+- Coverage of those % in this data (Oct-26, rows with % L6M / % L12M): BASE 268 / 290 of 402 rows, INNO 56 / 109 of 214, OSP 89 / 113 of 187.
+
+### 18.2 Step by step
+1. **Closed months:** month k (1 = Jul-26 … 12 = Jun-27) is closed if any BASE / INNO / OSP row has an SPP3 value in that month. Closed = Jul–Oct 26 → 4 (DASH CALC B25).
+2. **Trend month t:** Dashboard C15 "Month for trends" (default = last closed month). DASH CALC B28 = its index (Oct-26 = 4; a non-closed or empty choice falls back to B25), B29 = its label.
+3. **Window weights** (DASH CALC rows 58–61, columns C..N = months 1..12):
+   - L6M actual: k in (t−6, t] → use "Act + Fcst" of month k.
+   - L6M last year: k > t + 6 → use "Year Ago" of month k (= actual of the FY26 month).
+   - L12M actual: k ≤ t → "Act + Fcst". L12M last year: k > t → "Year Ago".
+   - Example t = Oct-26 (4): L6M = May-26, Jun-26 (YA columns HQ, ID of May-27, Jun-27) + Jul–Oct 26 (CP, DC, DP, EC). L12M = Nov-25 → Jun-26 (YA columns EQ, FD, FQ, GD, GQ, HD, HQ, ID) + Jul–Oct 26.
+4. **Per row** (sell-in rows of DASH CALC: BASE rows 1201–1700 = tab rows 5–504; INNO 1701–2200; OSP 3801–4300):
+   - F = Act L6M = 1000 × Σ window volumes (step 3). H = Act L12M.
+   - % used = "% L6M vs YA" (6M) or "% L12M vs YA" (12M) **of month t** (Oct-26: EK / EJ).
+   - If the % exists and 1 + % > 0: **YA = Act / (1 + %)** (G for 6M, I for 12M). Flag O (6M) / BL (12M) = 1.
+   - If not (blank %: discontinued items whose % would be −100%, launches, rows without history): **YA = 1000 × Σ "Year Ago" of the FY27 months inside the window × (6 / number of those months)** for 6M, or × (12 / number of those months) for 12M. With t = Oct-26: 6M → (CQ + DD + DQ + ED) × 6/4; 12M → (CQ + DD + DQ + ED) × 12/4. Flag = 0.
+   - E = the row is in the filter: layer included, Planner / House (via the IPPL Line of column A), IPPL Line, Product line.
+5. **Aggregate:** Sell-in 6M = Σ(E × F) / Σ(E × G) − 1 (DASH CALC B14, Dashboard F10). Sell-in 12M = Σ(E × H) / Σ(E × I) − 1 (B15, Dashboard H10). Coverage = share of Σ(E × Act) in rows with flag 1 (B30 for 6M, B31 for 12M; shown in Dashboard B16).
+6. The same row values feed the trend tables by IPPL Line (DASH CALC AD/AE 5301+) and by product line (AD/AE 101+), and the projections (LY × (1 + trend)).
+
+### 18.3 Worked examples (t = Oct-26; tab values are in thousands, results in units)
+- **Gorgeous Gardenia (BASE row 9, has %):** Act Jul–Oct 26 = 1,652.8 + 1,516.9 + 2,255.0 + 996.4; May–Jun 26 (HQ, ID) = 1,343.8 + 2,039.2 → Act L6M = 9,803,994. % L6M Oct (EK) = −22.33% → YA L6M = 9,803,994 / (1 − 0.2233) = 12,622,122 → row trend −22.3%. (In the PL view the PL also has an OSP row, so the PL trend is −23.9%.)
+- **Goddess EDP (BASE row 5, has %):** Act L6M = 15,626,993; % L6M Oct = −16.97% → YA L6M = 18,821,047.
+- **Fragrances Radiant Grace (INNO row 106, no %, discontinued):** Act L6M = 0; YA Jul–Oct 25 (CQ, DD, DQ, ED) = 17.4 + 40.2 + 46.3 + 143.8 → YA L6M estimate = 1000 × 247.6 × 6/4 = 371,433. It now pulls the trend down; before this change it counted as YA = 0.
+
+### 18.4 Reference values (all layers, Nov-26 → Jun-27; trends do not depend on the month range)
+Sell-in 6M / 12M by Month for trends (all filters = All):
+
+| Month for trends | Total | BASE only | INNO only | OSP only |
+|---|---|---|---|---|
+| Oct-26 (default) | +5.8% / +4.4% | −5.0% / +4.2% | +59.4% / +21.8% | −1.9% / −5.7% |
+| Sep-26 | +4.2% / +10.5% | −4.0% / +17.3% | +36.1% / +9.4% | −0.4% / +0.2% |
+| Aug-26 | +9.9% / +21.5% | +7.9% / +47.4% | +40.1% / −0.6% | −6.1% / +2.1% |
+| Jul-26 | +16.5% / +27.6% | +6.5% / +67.1% | +49.4% / −10.3% | +15.2% / +9.5% |
+
+Month for trends = Oct-26, all layers:
+
+| Filter | Sell-in 6M | Sell-in 12M | Coverage 6M / 12M |
+|---|---|---|---|
+| All | +5.8% | +4.4% | 70% / 77% |
+| House = BURBERRY | −2.8% | +4.2% | 74% / 77% |
+| House = Gucci | −4.6% | −7.0% | |
+| House = CP-Marc Jacobs | +22.5% | +14.6% | 71% / 79% |
+| House = Kylie Makeup | +9.8% | +30.3% | |
+| House = Hugo Boss | −20.5% | −7.6% | |
+| Planner = Adria | +6.7% | +7.7% | |
+| Planner = German | +22.8% | +10.2% | |
+| Planner = Magalie | −16.0% | −12.7% | 90% / 93% |
+| Planner = Elvira | −31.9% | −9.9% | |
+| Planner = (unassigned) | +10.0% | +16.8% | |
+| Product line = Gorgeous Gardenia | −23.9% | −11.9% | 100% / 100% |
+| Product line = Burberry Her EDP | −17.7% | −16.5% | |
+| Product line = Goddess EDP | −9.1% | −10.6% | |
+| BASE only, Month for trends = Sep-26 | −4.0% | +17.3% | 90% / 93% |
+
+The method before the "Month for trends" change (FY % columns, rows without % = YA 0) gave Total +14.1% / +6.9% and INNO +146.8% for 6M; use that only to confirm that a file is the old version.
+
+### 18.5 Sell-out (EPOS) test
+- EPOS rows 3–602: D = line (product line name), E = $ L26W, F = YoY Δ L26W, H = $ L52W, I = YoY Δ L52W.
+- Last-year $ = $ − YoY Δ. Sell-out 6M = Σ $ L26W / Σ($ L26W − Δ) − 1; 12M the same with L52W. Lines are mapped to IPPL Line / House through IPPL MAP 1 (column C line → column E IPPL Line) and filtered like the sell-in rows; "Total" rows are ignored.
+- Reference (all filters = All): Sell-out 6M +2.7%, 12M −0.2%. By house it matches the YoY % of the Power BI export.
+
+### 18.6 How these values were checked
+The figures in 18.4 were produced by an independent Python re-calculation (reading the input tabs directly) and match the workbook recalculated in LibreOffice to 6 decimals in every case tested (15 filter scenarios, trend months Jul–Oct).
