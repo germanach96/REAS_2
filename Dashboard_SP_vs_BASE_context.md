@@ -154,7 +154,8 @@ A month is closed when any BASE / INNO / OSP row has an SPP3 value for it. With 
 
 ### 7.2 Sell-out trends (EPOS, $)
 - 6M = **L26W**, 12M = **L52W**. **trend = Σ$ / Σ($ − YoY Δ) − 1.**
-- Each EPOS line is mapped to its IPPL Line via IPPL MAP 1. At product-line level it is matched by exact line name in EPOS; if there is no match, n/a.
+- Each EPOS line is mapped to its IPPL Line via IPPL MAP 1. At product-line level it is matched by line name in EPOS, ignoring non-breaking spaces (CHAR 160), leading / trailing spaces and repeated spaces on both sides (clean key in DASH CALC I2301:I2900, from 04-Nov-2026). Before that the match was exact, so e.g. "Flora Gorgeous Jasmine" + CHAR 160 in the extract did not find "Flora Gorgeous Jasmine" in EPOS (now −31.0% 6M / −22.9% 12M); the other PLs affected in the 03-Nov data were Boss The Scent New Intense F / M, Cool Water Reborn EDT Man, Daisy Wild EAU so Extra and Signatures Sub collection.
+- Sell-out at PL level is n/a when there is no EPOS line with that name (the extract and EPOS sometimes name a PL differently, e.g. "Fragrances Philosophy Fresh Cream" vs "Philosophy Fresh Cream") or when the EPOS line has no last-year $ (launches: $ = YoY Δ).
 - The layer selection does not affect sell-out (EPOS does not split layers).
 
 ### 7.3 Forecast accuracy (lag 3)
@@ -306,7 +307,7 @@ Note on the 03-Nov extract: the month-level "% L6M / % L12M vs YA" columns are m
 
 **What does the Planner filter do?** It keeps only the houses owned by that planner (PLANNER tab) in every figure, chart and dropdown.
 
-**Why does a trend show n/a?** Sell-in: none of the rows in the selection has the system "% L6M / % L12M vs YA" for the Month for trends (launches, PLs without two years of history, discontinued items); no last-year volume is estimated for them. Sell-out: no match in EPOS.
+**Why does a trend show n/a?** Sell-in: none of the rows in the selection has the system "% L6M / % L12M vs YA" for the Month for trends (launches, PLs without two years of history, discontinued items); no last-year volume is estimated for them. Sell-out: no EPOS line with that product-line name (spaces / CHAR 160 are ignored, other naming differences are not), or no last-year $ in EPOS (launch).
 
 **Where is the exported PDF saved?** In the same folder as the Excel file (or in Downloads, with a message, if that folder cannot be written). Name REAS_2_EXPORT_YYMMDDHHMMSS.pdf.
 
@@ -416,7 +417,7 @@ Older versions, only to recognise them: the same 03-Nov file with the YA estimat
 
 ### 18.5 Sell-out (EPOS) test
 - EPOS rows 3–602: D = line (product line name), E = $ L26W, F = YoY Δ L26W, H = $ L52W, I = YoY Δ L52W.
-- Last-year $ = $ − YoY Δ. Sell-out 6M = Σ $ L26W / Σ($ L26W − Δ) − 1; 12M the same with L52W. Lines are mapped to IPPL Line / House through IPPL MAP 1 (column C line → column E IPPL Line) and filtered like the sell-in rows; "Total" rows are ignored.
+- Last-year $ = $ − YoY Δ. Sell-out 6M = Σ $ L26W / Σ($ L26W − Δ) − 1; 12M the same with L52W. PL-level match: clean name (I2301:I2900 = TRIM(SUBSTITUTE(line, CHAR(160), " "))) against the clean PL name; worked example: Flora Gorgeous Jasmine (EPOS row 96): 2,287,373 / (2,287,373 + 1,029,077) − 1 = −31.0% (6M); 7,057,458 / (7,057,458 + 2,100,461) − 1 = −22.9% (12M). Lines are mapped to IPPL Line / House through IPPL MAP 1 (column C line → column E IPPL Line) and filtered like the sell-in rows; "Total" rows are ignored.
 - Reference (all filters = All): Sell-out 6M +2.7%, 12M −0.2%. By house it matches the YoY % of the Power BI export.
 
 ### 18.6 How these values were checked
